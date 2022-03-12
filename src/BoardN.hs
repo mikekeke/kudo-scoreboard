@@ -1,5 +1,6 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE ImportQualifiedPost #-}
+{-# LANGUAGE TupleSections #-}
 module BoardN where
 
 import Control.Concurrent (threadDelay)
@@ -12,8 +13,10 @@ import GHC.Generics (K1(K1))
 
 import Data.Map (Map)
 import Data.Map qualified as Map
-import Control.Concurrent.STM (TVar, readTVarIO, newTVarIO, stateTVar)
+import Control.Concurrent.STM (TVar, readTVarIO, newTVarIO, stateTVar, modifyTVar')
 import Control.Monad.STM (atomically)
+import Data.Foldable (for_)
+import Data.Traversable (for)
 
 
 -- Model --
@@ -27,7 +30,7 @@ data Point
 data Side
   = White
   | Blue
-  deriving stock (Show)
+  deriving stock (Show, Eq, Ord)
 
 data SideScore = SideScore
   { side :: Side -- TODO: More safety with data kinds?
@@ -60,13 +63,6 @@ addPoint side' pt' sb = case side' of
   White -> sb { whiteSide = addToScore pt' (whiteSide sb)} -- TODO: lenses?
   Blue -> sb { blueSide = addToScore pt' (blueSide sb)}
 
-pointScore :: Side -> Point -> ScoreBoard -> Int
-pointScore side' pt' sb' =
-  case side' of
-    White -> score (whiteSide sb') Map.! pt'
-    Blue -> score (blueSide sb') Map.! pt'
-
-
 -- UI --
 someFunc :: IO ()
 someFunc = do
@@ -79,31 +75,70 @@ someFunc = do
 setup :: TVar ScoreBoard -> Window -> UI ()
 setup sb w = void $ do
   pure w # set title "Board"
+  boardView <- mkBoardView
+  setClickers sb boardView
   getBody w #+
-   [row  (uiWhiteSide sb)]
+   [row  (toView boardView)]
+
+setClickers :: TVar ScoreBoard -> BoardView -> UI ()
+setClickers sbT bw = do
+  let views = [ (side', pt', v) | (side', pm) <- Map.toList (unBoard bw), (pt', v) <- Map.toList pm]
+  for_ views $ \(side', pt', tw) ->
+      on UI.click (tvPlusBtn tw) $ \_ -> do
+        liftIO $ atomically $ modifyTVar' sbT (addPoint side' pt')
+        newSb' <- liftIO $ readTVarIO sbT
+        renderBoard newSb' bw
 
 uiWhiteSide :: TVar ScoreBoard -> [UI Element]
-uiWhiteSide sbT =
-  (\pt -> mkPointTile White pt sbT) <$> [H ..]
+uiWhiteSide sbT = undefined
+  -- (\pt -> mkPointTile White pt sbT) <$> [H ..]
 
-mkPointTile :: Side -> Point -> TVar ScoreBoard -> UI Element
-mkPointTile side' pt' sbT = do
-  sb <- liftIO $ readTVarIO  sbT
+mkBoardView :: UI BoardView
+mkBoardView = do
+  whiteSide <-
+    Map.fromList <$> mapM (\pt -> (pt,) <$> mkPointTile pt) [H ..]
+
+  return $ BoardView (Map.singleton White whiteSide)
+
+mkPointTile :: Point -> UI TileView
+mkPointTile pt' = do
   button <- UI.button #. "button" #+ [string "+"]
   nameLbl <- UI.label #. "point_lbl" #+ [string (show pt')]
 
-  let 
-  scoreLbl <- UI.label #. "label 1" #+ [string (show $ currentScore sb)]
+  scoreLbl <- UI.label #. "label 1" #+ [string (show 0)]
   view <- UI.div #+
             [ UI.p #+ [element nameLbl]
             , UI.p #+ [element scoreLbl]
             , UI.p #+ [element button]
             ]
-  on UI.click button $ \_ -> do
-    newScore <- liftIO $ atomically $ stateTVar sbT f 
-    element scoreLbl # set text (show newScore)
-  return view
-  where
-    f sb' = let newSb = addPoint side' pt' sb'
-            in (currentScore newSb, newSb)
-    currentScore = pointScore side' pt'
+  return $ TileView nameLbl scoreLbl button
+
+data TileView = TileView
+  { tvTitle :: Element
+  , tvScore :: Element
+  , tvPlusBtn :: Element
+  }
+
+newtype BoardView = BoardView {unBoard :: Map Side (Map Point TileView) }
+
+renderBoard :: ScoreBoard -> BoardView -> UI ()
+renderBoard sb bv = do
+  renderSide (whiteSide sb) bv
+  -- renderSide (blueSide sb) bv -- TODO
+
+renderSide :: SideScore -> BoardView -> UI ()
+renderSide ss (BoardView boardMap) = do
+  let sideView = boardMap Map.! side ss
+  for_ (Map.toList $ score ss) $ \(pt, v) -> do
+    let scoreLbl = tvScore $ sideView Map.! pt
+    void $ element scoreLbl # set text (show v)
+
+toView :: BoardView -> [UI Element]
+toView (BoardView viewMap) =
+  let whiteSide = viewMap Map.! White
+  in flip map (Map.elems whiteSide) $ \(TileView t s btn) ->
+    UI.div #+
+      [ UI.p #+ [element t]
+      , UI.p #+ [element s]
+      , UI.p #+ [element btn]
+      ]
