@@ -26,7 +26,19 @@ dependencies:
 - containers
 - pretty-show
 - transformers
+- mtl
 
+default-extensions:
+  DerivingStrategies
+  ImportQualifiedPost
+  TupleSections
+  DataKinds
+  GADTs
+  KindSignatures
+  LambdaCase
+  AllowAmbiguousTypes
+  GeneralizedNewtypeDeriving
+  DeriveAnyClass
 
 library:
   source-dirs: src

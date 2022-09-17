@@ -25,18 +25,19 @@ source-repository head
 
 library
   exposed-modules:
-      Board
-      BoardN
-      BoardTF
-      TFBoard
+      Registration
+      Repos
       Types
   other-modules:
       Paths_kudo_scoreboard
   hs-source-dirs:
       src
+  default-extensions:
+      DerivingStrategies ImportQualifiedPost TupleSections DataKinds GADTs KindSignatures LambdaCase AllowAmbiguousTypes GeneralizedNewtypeDeriving DeriveAnyClass
   build-depends:
       base >=4.7 && <5
     , containers
+    , mtl
     , pretty-show
     , stm
     , transformers
@@ -46,14 +47,18 @@ library
 executable kudo-scoreboard-exe
   main-is: Main.hs
   other-modules:
+      TestApp
       Paths_kudo_scoreboard
   hs-source-dirs:
       app
+  default-extensions:
+      DerivingStrategies ImportQualifiedPost TupleSections DataKinds GADTs KindSignatures LambdaCase AllowAmbiguousTypes GeneralizedNewtypeDeriving DeriveAnyClass
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , containers
     , kudo-scoreboard
+    , mtl
     , pretty-show
     , stm
     , transformers
@@ -67,11 +72,14 @@ test-suite kudo-scoreboard-test
       Paths_kudo_scoreboard
   hs-source-dirs:
       test
+  default-extensions:
+      DerivingStrategies ImportQualifiedPost TupleSections DataKinds GADTs KindSignatures LambdaCase AllowAmbiguousTypes GeneralizedNewtypeDeriving DeriveAnyClass
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , containers
     , kudo-scoreboard
+    , mtl
     , pretty-show
     , stm
     , transformers
