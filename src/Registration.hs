@@ -15,19 +15,19 @@ data RegistrationError
 
 registerCargo :: (CargoRegistry m, IdService m) => Person -> Goods -> m (Either RegistrationError ())
 registerCargo p gs = runEitherT $ do
-  newCargoId <- nextCargoId `errorTo` IdServiceErr
+  newCargoId <- nextCargoId `withErrorAs` IdServiceErr
   let newCargo = Cargo newCargoId p gs
-  res <- addCargo newCargo `errorTo` CargoRegErr
+  res <- addCargo newCargo `withErrorAs` CargoRegErr
   pure res
 
 
 listRegistered :: (CargoRegistry m) => m (Either RegistrationError [Cargo])
 listRegistered = runEitherT $ do 
-  allCargos `errorTo` CargoRegErr
+  allCargos `withErrorAs` CargoRegErr
 
-errorTo ::
+withErrorAs ::
   Monad m =>
   m (Either e a) ->
   (e -> RegistrationError) ->
   EitherT RegistrationError m a
-errorTo action errorCons = firstEitherT errorCons $ newEitherT action 
+withErrorAs action errorCons = firstEitherT errorCons $ newEitherT action 
