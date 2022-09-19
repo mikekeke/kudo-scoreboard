@@ -41,7 +41,9 @@ library
     , pretty-show
     , stm
     , transformers
+    , transformers-either
     , unliftio
+    , uuid
   default-language: Haskell2010
 
 executable kudo-scoreboard-exe
@@ -62,7 +64,9 @@ executable kudo-scoreboard-exe
     , pretty-show
     , stm
     , transformers
+    , transformers-either
     , unliftio
+    , uuid
   default-language: Haskell2010
 
 test-suite kudo-scoreboard-test
@@ -83,5 +87,7 @@ test-suite kudo-scoreboard-test
     , pretty-show
     , stm
     , transformers
+    , transformers-either
     , unliftio
+    , uuid
   default-language: Haskell2010

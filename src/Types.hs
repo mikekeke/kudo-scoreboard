@@ -6,15 +6,14 @@ import Data.Foldable (for_)
 import Data.Traversable (for)
 import Text.Show.Pretty (ppShow)
 
-newtype CargoId = CargoId Int
+import Data.UUID (UUID)
+
+
+data Cargo = Cargo { cId:: CargoId, cOwner :: Person, cGoods :: Goods}
+  deriving stock Show
+
+data CargoId = CargoId { getId :: UUID }
   deriving stock (Eq, Ord, Show)
-  deriving newtype Enum
-
-data Cargo = Cargo { cOwner :: Person, cGoods :: Goods}
-  deriving stock Show
-
-data RegisteredCargo = RegisteredCargo {rcId :: CargoId, rcCargo :: Cargo}
-  deriving stock Show
 
 newtype Goods = Goods {goodsList :: [String]}
   deriving stock Show

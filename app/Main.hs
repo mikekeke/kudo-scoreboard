@@ -11,11 +11,13 @@ import Registration qualified as Reg
 main :: IO ()
 main = do
   putStrLn $ replicate 50 '*'
+  putStrLn $ replicate 50 '*'
   putStrLn . ppShow $ TA.runTa someApp
 
 
 -- appRun :: Monad m => m [RegisteredCargo]
-someApp = do
-  Reg.registerCargo (Person "Bob") (Goods ["Bob's shit"])
-  Reg.registerCargo (Person "Tom") (Goods ["bread", "pitt"])
-  Reg.listRegistered
+someApp = 
+  (,,)
+  <$> Reg.registerCargo (Person "Bob") (Goods ["Bob's shit"])
+  <*> Reg.registerCargo (Person "Tom") (Goods ["bread", "pitt"])
+  <*> Reg.listRegistered

@@ -27,6 +27,8 @@ dependencies:
 - pretty-show
 - transformers
 - mtl
+- uuid
+- transformers-either
 
 default-extensions:
   DerivingStrategies
