@@ -27,7 +27,7 @@ instance CargoRegistry TestCargoApp where
 
   addCargo c = 
     case cGoods c of
-      (Goods [x]) -> pure $ Left (SomeCargoRegError "Test error: Not enough goods")
+      (Goods [x]) -> pure $ Left (SomeCargoRegError "Test error: registry unavailable")
       _ -> Right <$> modify (second (Map.insert (cId c) c))
     
 
