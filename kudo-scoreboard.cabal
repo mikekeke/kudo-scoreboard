@@ -28,6 +28,7 @@ library
       Registration
       Repos
       Types
+      Users
   other-modules:
       Paths_kudo_scoreboard
   hs-source-dirs:
