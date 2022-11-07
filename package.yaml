@@ -29,8 +29,10 @@ dependencies:
 - mtl
 - uuid
 - transformers-either
+- sqlite-simple
 
 default-extensions:
+  OverloadedStrings
   DerivingStrategies
   ImportQualifiedPost
   TupleSections
@@ -41,6 +43,9 @@ default-extensions:
   AllowAmbiguousTypes
   GeneralizedNewtypeDeriving
   DeriveAnyClass
+  DeriveGeneric
+  FlexibleContexts
+  TypeApplications
 
 library:
   source-dirs: src
@@ -66,3 +71,5 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - kudo-scoreboard
+    - hspec
+    - hspec-discover

@@ -25,8 +25,11 @@ source-repository head
 
 library
   exposed-modules:
+      DbApp
       Registration
       Repos
+      SQLite.DebugSQLite
+      SQLite.Instances
       Types
       Users
   other-modules:
@@ -34,12 +37,13 @@ library
   hs-source-dirs:
       src
   default-extensions:
-      DerivingStrategies ImportQualifiedPost TupleSections DataKinds GADTs KindSignatures LambdaCase AllowAmbiguousTypes GeneralizedNewtypeDeriving DeriveAnyClass
+      OverloadedStrings DerivingStrategies ImportQualifiedPost TupleSections DataKinds GADTs KindSignatures LambdaCase AllowAmbiguousTypes GeneralizedNewtypeDeriving DeriveAnyClass DeriveGeneric FlexibleContexts TypeApplications
   build-depends:
       base >=4.7 && <5
     , containers
     , mtl
     , pretty-show
+    , sqlite-simple
     , stm
     , transformers
     , transformers-either
@@ -55,7 +59,7 @@ executable kudo-scoreboard-exe
   hs-source-dirs:
       app
   default-extensions:
-      DerivingStrategies ImportQualifiedPost TupleSections DataKinds GADTs KindSignatures LambdaCase AllowAmbiguousTypes GeneralizedNewtypeDeriving DeriveAnyClass
+      OverloadedStrings DerivingStrategies ImportQualifiedPost TupleSections DataKinds GADTs KindSignatures LambdaCase AllowAmbiguousTypes GeneralizedNewtypeDeriving DeriveAnyClass DeriveGeneric FlexibleContexts TypeApplications
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
@@ -63,6 +67,7 @@ executable kudo-scoreboard-exe
     , kudo-scoreboard
     , mtl
     , pretty-show
+    , sqlite-simple
     , stm
     , transformers
     , transformers-either
@@ -74,18 +79,23 @@ test-suite kudo-scoreboard-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      PureTestApp
+      RegistrationSpec
       Paths_kudo_scoreboard
   hs-source-dirs:
       test
   default-extensions:
-      DerivingStrategies ImportQualifiedPost TupleSections DataKinds GADTs KindSignatures LambdaCase AllowAmbiguousTypes GeneralizedNewtypeDeriving DeriveAnyClass
+      OverloadedStrings DerivingStrategies ImportQualifiedPost TupleSections DataKinds GADTs KindSignatures LambdaCase AllowAmbiguousTypes GeneralizedNewtypeDeriving DeriveAnyClass DeriveGeneric FlexibleContexts TypeApplications
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , containers
+    , hspec
+    , hspec-discover
     , kudo-scoreboard
     , mtl
     , pretty-show
+    , sqlite-simple
     , stm
     , transformers
     , transformers-either

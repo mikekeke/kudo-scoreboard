@@ -1,12 +1,21 @@
 module Users where
-import Types (Person (phone))
-import Repos (UserRegistry (getUser, addUser, allUsers), UserRepoError (UserNotFound))
-import Control.Monad.Trans.Either (runEitherT, EitherT, firstEitherT, newEitherT)
+
 import Control.Arrow (left)
+import Control.Monad.Trans.Either
+  ( EitherT,
+    firstEitherT,
+    newEitherT,
+    runEitherT,
+  )
+import Repos
+  ( UserRegistry (addUser, allUsers, getUser),
+    UserRepoError (UserNotFound),
+  )
+import Types (Person (phone))
 
 data UserServiceError
   = SomeUserSvcError String
-  deriving stock Show
+  deriving stock (Eq, Show)
 
 registerUser ::
   (UserRegistry m) =>
@@ -19,23 +28,17 @@ registerUser p = do
     Left (UserNotFound _) -> addUser p `rethrow` someErr
     Left e -> pure $ Left (someErr e)
   where
-    someErr :: Show a => a ->  UserServiceError
+    someErr :: Show a => a -> UserServiceError
     someErr = SomeUserSvcError . show
 
 contragents ::
- (UserRegistry m) =>
- m (Either UserServiceError [Person])
+  (UserRegistry m) =>
+  m (Either UserServiceError [Person])
 contragents = allUsers `rethrow` (SomeUserSvcError . show)
 
-rethrow :: 
-  (Monad m) => 
+rethrow ::
+  (Monad m) =>
   m (Either e a) ->
   (e -> UserServiceError) ->
   m (Either UserServiceError a)
-rethrow action errCons = action >>=  pure . left errCons
--- wrapErr ::
---   (Monad m, Show e) =>
---   m (Either e a) ->
---   EitherT UserServiceError m a
--- wrapErr action = 
---   firstEitherT (SomeUserSvcError . show) $ newEitherT action 
+rethrow action errCons = left errCons <$> action

@@ -6,6 +6,7 @@ import Data.Map qualified as Map
 import Data.Traversable (for)
 import Data.UUID (UUID)
 import Text.Show.Pretty (ppShow)
+import GHC.Generics (Generic)
 
 data Cargo = Cargo
   { cId :: CargoId,
@@ -26,6 +27,6 @@ data Person = Person
   { name :: String
   , phone :: UserPhone -- used for indetification 
   }
-  deriving stock (Show)
+  deriving stock (Eq, Show, Generic)
 
 type UserPhone = String

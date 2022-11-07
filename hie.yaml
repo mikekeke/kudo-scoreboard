@@ -1,0 +1,16 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "kudo-scoreboard:lib"
+
+    - path: "./app/Main.hs"
+      component: "kudo-scoreboard:exe:kudo-scoreboard-exe"
+
+    - path: "./app/TestApp.hs"
+      component: "kudo-scoreboard:exe:kudo-scoreboard-exe"
+
+    - path: "./app/Paths_kudo_scoreboard.hs"
+      component: "kudo-scoreboard:exe:kudo-scoreboard-exe"
+
+    - path: "./test"
+      component: "kudo-scoreboard:test:kudo-scoreboard-test"
