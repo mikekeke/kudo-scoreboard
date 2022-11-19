@@ -46,6 +46,7 @@ default-extensions:
   DeriveGeneric
   FlexibleContexts
   TypeApplications
+  NumericUnderscores
 
 library:
   source-dirs: src
@@ -60,6 +61,15 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - kudo-scoreboard
+  id-service:
+    main:                Main.hs
+    source-dirs:         id-service
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - scotty
 
 tests:
   kudo-scoreboard-test:

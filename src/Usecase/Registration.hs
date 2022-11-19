@@ -1,6 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Registration where
+module Usecase.Registration where
 
 import Control.Monad.Trans.Either
 import Debug.Trace
@@ -29,12 +29,12 @@ registerCargo p gs = runEitherT $ do
   newCargoId <- getNexCargoId
   let newCargo = Cargo newCargoId p gs
   res <- addNewCargo newCargo
-  registerUserOfNotFound
+  registerUserifNotFound
   pure res
   where
     getNexCargoId = nextCargoId `rethrow` IdServiceErr
     addNewCargo c = addCargo c `rethrow` CargoRegErr
-    registerUserOfNotFound = registerUser p `rethrow` UserSvcError
+    registerUserifNotFound = registerUser p `rethrow` UserSvcError
 
 listRegistered :: (CargoRegistry m) => m (Either RegistrationError [Cargo])
 listRegistered = runEitherT $ do

@@ -5,7 +5,7 @@ import Control.Monad.Trans.Class (lift)
 import Data.Char
 import Data.IORef
 import DbApp qualified
-import Registration qualified as Reg
+import Usecase.Registration qualified as Reg
 import SQLite.DebugSQLite qualified as DSQL
 import TestApp qualified as TA
 import Text.Show.Pretty (ppShow)
