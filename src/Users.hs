@@ -13,32 +13,32 @@ import Repos
   )
 import Types (Person (phone))
 
-data UserServiceError
-  = SomeUserSvcError String
-  deriving stock (Eq, Show)
+-- data UserServiceError
+--   = AlreadyRegistered Person String
+--   deriving stock (Eq, Show)
 
-registerUser ::
-  (UserRegistry m) =>
-  Person ->
-  m (Either UserServiceError ())
-registerUser p = do
-  eUser <- getUser (phone p)
-  case eUser of
-    Right _ -> pure $ Right ()
-    Left (UserNotFound _) -> addUser p `rethrow` someErr
-    Left e -> pure $ Left (someErr e)
-  where
-    someErr :: Show a => a -> UserServiceError
-    someErr = SomeUserSvcError . show
+-- registerUser ::
+--   (UserRegistry m) =>
+--   Person ->
+--   m (Either UserServiceError ())
+-- registerUser p = do
+--   eUser <- getUser (phone p)
+--   case eUser of
+--     Right _ -> pure $ Right ()
+--     Left (UserNotFound _) -> addUser p `rethrow` someErr
+--     Left e -> pure $ Left (someErr e)
+--   where
+--     someErr :: Show a => a -> UserServiceError
+--     someErr = SomeUserSvcError . show
 
-contragents ::
-  (UserRegistry m) =>
-  m (Either UserServiceError [Person])
-contragents = allUsers `rethrow` (SomeUserSvcError . show)
+-- -- contragents ::
+-- --   (UserRegistry m) =>
+-- --   m (Either UserServiceError [Person])
+-- -- contragents = allUsers `rethrow` (SomeUserSvcError . show)
 
-rethrow ::
-  (Monad m) =>
-  m (Either e a) ->
-  (e -> UserServiceError) ->
-  m (Either UserServiceError a)
-rethrow action errCons = left errCons <$> action
+-- rethrow ::
+--   (Monad m) =>
+--   m (Either e a) ->
+--   (e -> UserServiceError) ->
+--   m (Either UserServiceError a)
+-- rethrow action errCons = left errCons <$> action

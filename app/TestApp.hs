@@ -1,7 +1,5 @@
 module TestApp where
 
-import Control.Monad.State.Class
-import Control.Monad.Trans.State.Strict (StateT, evalStateT)
 import Data.Bifunctor (first, second)
 import Data.Functor.Identity ( Identity(runIdentity) )
 import Data.Map (Map)
@@ -17,23 +15,39 @@ import Repos
       UserRepoError(..)
      )
 import System.IO.Unsafe (unsafePerformIO)
-import Types ( Cargo(cGoods, cId), CargoId(CargoId), Goods(Goods), Person(phone) )
+import Types ( Cargo(cGoods, cId)
+  , CargoId(CargoId), Goods(Goods), Person(phone), User(User, getPerson) )
+import UnliftIO (MonadUnliftIO, IORef, newIORef, readIORef, writeIORef)
+import Control.Monad.IO.Class (MonadIO (liftIO))
+import Control.Monad.Reader (ReaderT (runReaderT), MonadReader (ask))
 
 data TestAppState = TestAppState 
  { taCurrentUid :: UUID
  , taCargos :: Map CargoId Cargo
- , taUsers :: [Person]
+ , taUsers :: [User]
  }
 
 newtype TestCargoApp a = TestCA
-  { runTestCA :: StateT TestAppState Identity a
+  { runTestCA :: ReaderT (IORef TestAppState) IO a
   }
-  deriving newtype (Functor, Applicative, Monad, MonadState TestAppState)
+  deriving newtype (Functor, Applicative, Monad, MonadReader (IORef TestAppState), MonadIO, MonadUnliftIO)
 
-runTa :: TestCargoApp a -> a
-runTa app = 
-  runIdentity $ evalStateT (runTestCA app) 
-  (TestAppState nil mempty mempty)
+runTa :: TestCargoApp a -> IO a
+runTa app = do
+  state <- newIORef (TestAppState nil mempty mempty)
+  runReaderT (runTestCA app) state
+  
+
+put :: (MonadReader (IORef a) m, MonadIO m) => a -> m ()
+put s = do
+  stateRef <- ask
+  liftIO $ writeIORef stateRef s
+
+get :: (MonadReader (IORef a) m, MonadIO m) => m a
+get = ask >>= liftIO . readIORef
+
+gets :: (MonadReader (IORef a) f, MonadIO f) => (a -> b) -> f b
+gets f  = f <$> get
 
 instance CargoRegistry TestCargoApp where
   addCargo c = do
@@ -59,13 +73,13 @@ instance IdService TestCargoApp where
     pure . Right $ CargoId newLast
 
 instance UserRegistry TestCargoApp where
-  addUser p = 
+  addUser p = let user = User p in
     get >>= 
-      \s -> put s{taUsers = p : taUsers s}
-      >>= pure . Right
+      \s -> put s{taUsers = user : taUsers s}
+      >> pure (Right user)
 
   getUser ph = do
-    users <- gets $ filter ((ph ==) . phone) . taUsers
+    users <- gets $ filter ((ph ==) . phone . getPerson) . taUsers
     case users of
       [u] -> pure $ Right u
       (_:_) -> pure $ Left (ManyUsersFound ph)

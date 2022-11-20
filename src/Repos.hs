@@ -2,7 +2,7 @@ module Repos where
 
 import Data.UUID (UUID)
 
-import Types ( CargoId, Cargo, Person, UserPhone )
+import Types ( CargoId, Cargo, Person, UserPhone, User )
 
 -- Cargo repo --
 data CargoRegistryError 
@@ -30,6 +30,6 @@ data UserRepoError
   deriving stock Show
 
 class Monad m => UserRegistry m where
-  addUser :: Person -> m (Either UserRepoError ())
-  getUser :: UserPhone -> m (Either UserRepoError Person)
-  allUsers :: m (Either UserRepoError [Person])
+  addUser :: Person -> m (Either UserRepoError User)
+  getUser :: UserPhone -> m (Either UserRepoError User)
+  allUsers :: m (Either UserRepoError [User])

@@ -30,6 +30,7 @@ dependencies:
 - uuid
 - transformers-either
 - sqlite-simple
+- pretty-show
 
 default-extensions:
   OverloadedStrings

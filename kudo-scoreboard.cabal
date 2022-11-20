@@ -25,10 +25,14 @@ source-repository head
 
 library
   exposed-modules:
-      DbApp
+      IOApp
+      IOApp.CargoRegistry
+      IOApp.IdService
+      IOApp.SQLiteInstances
+      IOApp.Types
+      IOApp.UserRegistry
       Repos
       SQLite.DebugSQLite
-      SQLite.Instances
       Types
       Usecase.Registration
       Users

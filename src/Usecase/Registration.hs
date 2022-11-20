@@ -2,48 +2,61 @@
 
 module Usecase.Registration where
 
-import Control.Monad.Trans.Either
+-- import Control.Monad.Trans.Either
+
+import Control.Arrow (left)
+import Control.Monad.IO.Class (MonadIO, liftIO)
+-- import Control.Monad.Trans.Either (EitherT, firstEitherT, newEitherT, runEitherT)
+
+-- import UnliftIO.Async (Concurrently (Concurrently, runConcurrently))
+-- import UnliftIO.Async (Concurrently (Concurrently, runConcurrently))
+import Control.Monad.Trans.Either (EitherT, firstEitherT, hoistEither, newEitherT, runEitherT)
 import Debug.Trace
 import Repos
   ( CargoRegistry (..),
     CargoRegistryError,
     IdService (..),
     IdServiceError,
-    UserRegistry,
+    UserRegistry (addUser, getUser),
+    UserRepoError (UserNotFound),
   )
-import Types (Cargo (Cargo), Goods, Person)
-import Users (UserServiceError, registerUser)
+import Types (Cargo (Cargo), Goods, Person (phone))
+import UnliftIO (Concurrently (Concurrently, runConcurrently), MonadUnliftIO)
+
+-- import Users (UserServiceError, registerUser)
 
 data RegistrationError
-  = CargoRegErr CargoRegistryError
+  = CargoRepoErr CargoRegistryError
   | IdServiceErr IdServiceError
-  | UserSvcError UserServiceError
+  | UserRepoError UserRepoError
   deriving stock (Show)
 
 registerCargo ::
-  (CargoRegistry m, IdService m, UserRegistry m) =>
+  (Monad m, MonadUnliftIO m, CargoRegistry m, IdService m, UserRegistry m) =>
   Person ->
   Goods ->
   m (Either RegistrationError ())
-registerCargo p gs = runEitherT $ do
-  newCargoId <- getNexCargoId
-  let newCargo = Cargo newCargoId p gs
-  res <- addNewCargo newCargo
-  registerUserifNotFound
-  pure res
+registerCargo p gs = do
+  (uid, user) <-
+    runConcurrently $
+      (,) <$> Concurrently nextCargoId <*> Concurrently registerUser
+  runEitherT $ do
+    newId <- handling IdServiceErr (pure uid)
+    userReg <- handling UserRepoError (pure user)
+    let newCargo = Cargo newId p gs
+    handling CargoRepoErr $ addCargo newCargo
   where
-    getNexCargoId = nextCargoId `rethrow` IdServiceErr
-    addNewCargo c = addCargo c `rethrow` CargoRegErr
-    registerUserifNotFound = registerUser p `rethrow` UserSvcError
+    registerUser = do
+      eUser <- getUser (phone p)
+      case eUser of
+        Right u -> pure $ Right u
+        Left (UserNotFound _) -> addUser p
+        Left e -> pure $ Left e
 
-listRegistered :: (CargoRegistry m) => m (Either RegistrationError [Cargo])
-listRegistered = runEitherT $ do
-  allCargos `rethrow` CargoRegErr
-
-rethrow ::
+handling ::
   Monad m =>
-  m (Either e a) ->
   (e -> RegistrationError) ->
+  m (Either e a) ->
   EitherT RegistrationError m a
-rethrow action errorCons =
+handling errorCons action =
   firstEitherT errorCons $ newEitherT action
